@@ -25,7 +25,7 @@ import com.alibaba.csp.sentinel.datasource.AbstractDataSource;
 import com.alibaba.csp.sentinel.heartbeat.HeartbeatSenderProvider;
 import com.alibaba.csp.sentinel.transport.HeartbeatSender;
 import com.alibaba.csp.sentinel.transport.config.TransportConfig;
-import com.alibaba.csp.sentinel.util.function.Tuple2;
+import com.alibaba.csp.sentinel.transport.endpoint.Endpoint;
 
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
@@ -84,8 +84,7 @@ public class SentinelHealthIndicator extends AbstractHealthIndicator {
 
 		// Check health of Dashboard
 		boolean dashboardUp = true;
-		List<Tuple2<String, Integer>> consoleServerList = TransportConfig
-				.getConsoleServerList();
+		List<Endpoint> consoleServerList = TransportConfig.getConsoleServerList();
 		if (CollectionUtils.isEmpty(consoleServerList)) {
 			// If Dashboard isn't configured, it's OK and mark the status of Dashboard
 			// with UNKNOWN.
@@ -105,7 +104,7 @@ public class SentinelHealthIndicator extends AbstractHealthIndicator {
 				// If failed to send heartbeat message, means that the Dashboard is DOWN
 				dashboardUp = false;
 				detailMap.put("dashboard",
-						new Status(Status.DOWN.getCode(), String.format(
+						new Status(Status.UNKNOWN.getCode(), String.format(
 								"the dashboard servers [%s] one of them can't be connected",
 								consoleServerList)));
 			}
@@ -138,7 +137,7 @@ public class SentinelHealthIndicator extends AbstractHealthIndicator {
 				// DOWN
 				dataSourceUp = false;
 				dataSourceDetailMap.put(dataSourceBeanName,
-						new Status(Status.DOWN.getCode(), e.getMessage()));
+						new Status(Status.UNKNOWN.getCode(), e.getMessage()));
 			}
 		}
 
@@ -147,7 +146,7 @@ public class SentinelHealthIndicator extends AbstractHealthIndicator {
 			builder.up().withDetails(detailMap);
 		}
 		else {
-			builder.down().withDetails(detailMap);
+			builder.unknown().withDetails(detailMap);
 		}
 	}
 
